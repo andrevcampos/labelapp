@@ -1,0 +1,19 @@
+{
+  "name": "atum_sku",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "heroku-builds": "^0.0.29",
+    "npm-woocommerce-api": "^1.0.7",
+    "tableexport": "^3.3.13",
+    "woocommerce": "^2.4.0",
+    "woocommerce-api": "^1.4.2"
+  }
+}

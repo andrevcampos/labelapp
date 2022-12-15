@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/public/styles/style.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+    </head>
+    <body>
+        <div class="d-flex justify-content-center">
+            <h1>Inventory Grabber</h1>
+        </div>
+
+        <div class="d-flex justify-content-center">
+            <table class="table table-sm" id="inventory">
+                <thead>
+                    <tr>
+                    <th scope="col">Item</th>
+                    <th scope="col">SKU</th>
+                    </tr>
+                </thead>
+                <tbody id="tabledata">
+                </tbody>
+            </table>
+
+        </div>
+        <div class="d-flex justify-content-center">
+            <p id="loadingText"></p>
+            <div class="form-group mx-sm-3 mb-2">
+                <input class="form-control" id="poID" placeholder="Purchase Order Number" name="id">
+            </div>
+            <button type="submit" class="btn btn-primary mb-2" id="itemAdd" onclick="addItem('_poID')">Generate</button>
+            <button type="button" class="btn btn-primary mb-2" id="downloadSpreadsheet" onclick="resetTabel()">Reset</button>
+        </div> 
+
+        <script>
+            function ExportToExcel(type, fn, dl) {
+            var elt = document.getElementById('inventory');
+            var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+            return dl ?
+                XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
+                XLSX.writeFile(wb, fn || ('MySheetName.' + (type || 'xlsx')));
+            }
+
+            function resetTabel() {
+                document.getElementById("tabledata").innerHTML = "";
+                document.getElementById("loadingText").textContent = "";
+                document.getElementById("poID").value = "";
+            }
+
+            var _table = document.getElementById("tabledata");
+            var _ssku = document.getElementById("ssku");
+            
+            function addItem() {
+                var _poID = document.getElementById("poID").value;
+                document.getElementById("loadingText").textContent = "loading";
+                var _data = fetch('/pos?id='+_poID).then((response) => {
+                    return response.json();
+                    document.getElementById("loadingText").textContent = "loaded";
+                }).then((data) => {
+                    // Work with JSON data here
+                    for(var _i = 0; _i < data.length; ++_i) {
+                            var _quantity = data[_i][3];
+                            for(var _j = 0; _j < _quantity; ++_j) {
+                            var _row                = _table.insertRow(0);
+                            var _nameCell           = _row.insertCell(0);
+                            var _skuCell            = _row.insertCell(1);
+
+                            _nameCell.id            = "name";
+                            _skuCell.id             = "sku";
+                            _nameCell.innerHTML     = data[_i][1];
+                            _skuCell.innerHTML      = data[_i][2];
+                            }
+                    }
+
+                    //download xlsx
+                    ExportToExcel('xlsx');
+                }).catch((err) => {
+                    // Do something for an error here
+                    console.log("Something went wrong...");
+                });
+            }
+        </script>
+    </body>
+</html>
